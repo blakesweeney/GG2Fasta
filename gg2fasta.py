@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import re
+from sets import Set
 import argparse
 
 import simplejson as json
@@ -20,7 +21,8 @@ parser.add_argument('--fields', action=SplitAction,
                     help='Feilds to output in the fasta file')
 
 args = parser.parse_args()
-fields = args.fields
+fields = Set(args.fields)
+fields.add('aligned_seq')
 entry_pattern = re.compile('([\w_]+)=(.*)$')
 
 record = {}
@@ -28,7 +30,9 @@ for line in args.gg_file:
     line.rstrip()
     match = entry_pattern.match(line)
     if match:
-      record[match.group(1)] = match.group(2)
+      key = match.group(1)
+      if key in fields:
+          record[key] = match.group(2)
     if line == 'END\n':
       sequence = record['aligned_seq']
       del record['aligned_seq']
